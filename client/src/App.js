@@ -11,15 +11,14 @@ class App extends Component {
 
     this.state = {
       ipfsHash: '',
-      storageValue: 0,
       web3: null,
-      buffer: null
+      buffer: null,
+      account: null,
+      contract: null
     }
     this.captureFile = this.captureFile.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
   }
-
-  state = { storageValue: 0, web3: null, accounts: null, contract: null };
 
   componentDidMount = async () => {
     try {
@@ -39,7 +38,7 @@ class App extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      this.setState({ web3, account: accounts[0], contract: instance }, this.getIpfsHash);
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -49,17 +48,12 @@ class App extends Component {
     }
   };
 
-  runExample = async () => {
-    const { accounts, contract } = this.state;
-
-    // Stores a given value, 5 by default.
-    await contract.methods.set(5).send({ from: accounts[0] });
-
+  getIpfsHash = async () => {
     // Get the value from the contract to prove it worked.
-    const response = await contract.methods.get().call();
+    const ipfsHash = await this.state.contract.methods.get.call(this.state.account);
 
     // Update state with the result.
-    this.setState({ storageValue: response });
+    this.setState({ ipfsHash });
   };
 
   captureFile = async (event) => {
@@ -74,13 +68,13 @@ class App extends Component {
 
   onSubmit = async (event) => {
     event.preventDefault();
-    ipfs.files.add(this.state.buffer, (error, result) => {
+    ipfs.files.add(this.state.buffer, async (error, result) => {
       if(error) {
         console.error(error);
         return;
       }
+      await this.state.contract.methods.set(result[0].hash, { from: this.state.account });
       this.setState({ ipfsHash: result[0].hash });
-      console.log('ipfsHash', this.state.ipfsHash);
     });
   }
 
