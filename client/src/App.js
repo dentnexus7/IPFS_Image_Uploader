@@ -50,7 +50,7 @@ class App extends Component {
 
   getIpfsHash = async () => {
     // Get the value from the contract to prove it worked.
-    const ipfsHash = await this.state.contract.methods.get.call(this.state.account);
+    const ipfsHash = await this.state.contract.methods.get().call();
 
     // Update state with the result.
     this.setState({ ipfsHash });
@@ -73,7 +73,7 @@ class App extends Component {
         console.error(error);
         return;
       }
-      await this.state.contract.methods.set(result[0].hash, { from: this.state.account });
+      await this.state.contract.methods.set(result[0].hash).send({ from: this.state.account });
       this.setState({ ipfsHash: result[0].hash });
     });
   }
@@ -93,7 +93,7 @@ class App extends Component {
             <div className="pure-u-1-1">
               <h1>Your Image</h1>
               <p>This image is stored on IPFS & The Ethereum Blockchain!</p>
-              <img src={`https://ipfs.io/ipfs/${this.state.ipfsHash}`} alt=""/>
+              <img src={`https://ipfs.infura.io/ipfs/${this.state.ipfsHash}`} alt=""/>
               <h2>Upload Image</h2>
               <form onSubmit={this.onSubmit} >
                 <input type='file' onChange={this.captureFile} />
